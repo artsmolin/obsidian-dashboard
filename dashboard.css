@@ -19,9 +19,7 @@ Note structure:
 
 .dashboard {
 	padding: 16px 34px 24px 38px !important;
-	/* Height of the section title strip. Must be a whole number of
-	   pixels and stay the single source of truth: the same value is
-	   reused in the negative margin and in the padding below. */
+	/* Minimum height of the section title strip above each card. */
 	--dash-head: 34px;
 
 	/* Base section colour. Every section overrides it below, and the
@@ -135,16 +133,14 @@ Note structure:
 	margin: 0;
 }
 
-/* ── One element draws the whole section outline ──────────────
-   The heading and the block list are two sibling divs. While the
-   border was assembled from two halves, a sub-pixel gap always
-   appeared where they met: the browser rounds the edges of adjacent
-   boxes independently. So the list element now draws the entire
-   outline, including the area behind the heading, and the heading
-   sits on top of it with no border of its own. The side lines
-   belong to a single element and are therefore continuous. */
+/* ── Section: a title above a card ────────────────────────────
+   The heading and the block list are two sibling divs, and only the
+   list is outlined. Keeping the title outside the card means the
+   outline is drawn by a single element, so there is no seam where
+   two boxes would otherwise meet — browsers round the edges of
+   adjacent boxes independently and a hairline gap shows through. */
 
-/* Heading: no border, text only */
+/* Heading: sits above the card, outside its outline */
 .dashboard .markdown-preview-section > div:has(> h2) {
 	position: relative;
 	z-index: 1;
@@ -156,17 +152,16 @@ Note structure:
 	align-items: center;
 	justify-content: center;
 	margin: 0;
-	padding: 0 12px;
+	padding: 0 12px 6px;
 	border: none;
 }
 
-/* Blocks plus the outline of the whole section.
-   The negative margin-top lifts the top border up to the top of the
-   heading; an equal padding-top pushes the content back down. */
+/* Blocks. The outline wraps only them — the section title stands
+   above the card rather than inside it. */
 .dashboard .markdown-preview-section > div:has(> ul) {
 	break-inside: avoid;
-	margin: calc(-1 * var(--dash-head)) 0 18px;
-	padding: var(--dash-head) 14px 13px;
+	margin: 0 0 18px;
+	padding: 12px 14px 13px;
 	border: 1px solid var(--dash-line);
 	border-radius: 14px;
 	background-color: var(--dash-surface);
@@ -240,7 +235,7 @@ Note structure:
 .dashboard .markdown-preview-section > div > ul {
 	display: block;
 	list-style: none;
-	margin: 9px 0 0;
+	margin: 0;
 	padding: 0;
 }
 

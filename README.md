@@ -34,8 +34,8 @@ cssclasses:
 	- [[Hardwood inventory]]
 ```
 
-`## Heading` becomes a **section** — a bordered card with a pill-shaped title.
-Each top-level bullet becomes a **block** inside it. Nested bullets are the links.
+`## Heading` becomes a **section** — a pill-shaped title above a bordered card.
+Each top-level bullet becomes a **block** inside the card. Nested bullets are the links.
 
 ---
 
@@ -48,7 +48,7 @@ Each top-level bullet becomes a **block** inside it. Nested bullets are the link
 | **Zero-chrome reading view** | The inline title and properties block are hidden in Reading view only — the editor keeps them, so frontmatter stays editable. |
 | **Typed links** | Internal notes are marked `¶`, external URLs `↗`. Underlines are removed. Unresolved links turn the marker red. |
 | **No bullet noise** | List markers are suppressed at every level; a small square in the section colour marks each block instead. |
-| **Seamless borders** | The whole section outline is drawn by a single element — no sub-pixel gaps where a header meets its body (see [How it works](#how-it-works)). |
+| **Seamless borders** | The outline is drawn by a single element, so no sub-pixel gap can open up inside it (see [How it works](#how-it-works)). |
 
 ---
 
@@ -121,7 +121,7 @@ Everything tunable lives in one block at the top of the file.
 
 | Variable | Default | What it does |
 |---|---|---|
-| `--dash-head` | `34px` | Height of the section title strip. Must be a whole number of pixels. |
+| `--dash-head` | `34px` | Minimum height of the title strip above each card. |
 | `--dash-accent` | `var(--text-accent)` | Base section colour, overridden per section below. |
 | `--dash-marker` | `5px` | Size of the square marker before a block title. |
 | `--dash-marker-gap` | `9px` | Gap between marker and title. Block content is indented by marker + gap. |
@@ -162,11 +162,10 @@ whole with `break-inside: avoid`, and a heading is glued to its list with `break
 the element that contains it. The browser balances the columns, so vertical space fills itself.
 
 **A section outline with no seams.** A heading and its list are two sibling `<div>`s — you cannot
-wrap them. Drawing the top half of a border on one and the bottom half on the other looks correct in
-theory, but browsers round each box independently and a hairline gap appears where they meet. The
-fix: the list element draws the *entire* outline, pulled up over the heading with
-`margin-top: calc(-1 * var(--dash-head))` and pushed back with an equal `padding-top`. One element,
-one border, no seam.
+wrap them in a shared container. Splitting a border between them, top half on one and bottom half on
+the other, looks right in theory, but browsers round each box independently and a hairline gap opens
+where the two meet. The fix is to stop splitting it: only the list is outlined, and the title sits
+above the card instead of inside it. One element, one border, no seam.
 
 **Alignment that survives edits.** The block title is offset by its marker, so the nested links are
 indented by `calc(var(--dash-marker) + var(--dash-marker-gap))` — the same numbers. Resize the
