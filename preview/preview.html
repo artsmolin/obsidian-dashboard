@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>dashboard preview</title>
+
+<!-- The snippet under test -->
+<link rel="stylesheet" href="../dashboard.css">
+
+<style>
+/* ────────────────────────────────────────────────────────────
+   Minimal emulation of Obsidian's environment.
+   Only what dashboard.css actually consumes: the CSS
+   variables it reads and the DOM classes it selects.
+   ──────────────────────────────────────────────────────────── */
+
+:root {
+	--font-semibold: 600;
+	--radius-s: 4px;
+	--link-decoration: underline;
+	--link-decoration-hover: underline;
+	--link-external-decoration: underline;
+	--link-external-decoration-hover: underline;
+}
+
+/* Dark palette (Obsidian default-ish) */
+body.theme-dark {
+	--background-primary: #1e1e1e;
+	--background-primary-alt: #1a1a1a;
+	--background-secondary: #262626;
+	--background-modifier-border: #3f3f3f;
+	--background-modifier-border-hover: #555;
+	--background-modifier-hover: rgba(255, 255, 255, .075);
+	--text-normal: #dadada;
+	--text-muted: #9a9a9a;
+	--text-faint: #6a6a6a;
+	--text-accent: #a882ff;
+	--text-error: #ff5a5a;
+	--link-color: #8aa9ff;
+	--color-blue: #5b8dee;
+	--color-purple: #a882ff;
+	--color-orange: #e0913a;
+	--color-green: #4caf7d;
+	--color-cyan: #45b3c4;
+	--color-pink: #e06c9f;
+	--color-yellow: #d7b34a;
+}
+
+/* Light palette */
+body.theme-light {
+	--background-primary: #ffffff;
+	--background-primary-alt: #fafafa;
+	--background-secondary: #f2f3f5;
+	--background-modifier-border: #ddd;
+	--background-modifier-border-hover: #c4c4c4;
+	--background-modifier-hover: rgba(0, 0, 0, .05);
+	--text-normal: #2e3338;
+	--text-muted: #6e7377;
+	--text-faint: #9ea2a6;
+	--text-accent: #7b52d6;
+	--text-error: #c0392b;
+	--link-color: #4a6fd4;
+	--color-blue: #3d6fd4;
+	--color-purple: #7b52d6;
+	--color-orange: #c4761f;
+	--color-green: #2f8f5b;
+	--color-cyan: #2a8d9e;
+	--color-pink: #c44f83;
+	--color-yellow: #b18f22;
+}
+
+* { box-sizing: border-box; }
+
+body {
+	margin: 0;
+	font-family: -apple-system, "Inter", "Segoe UI", system-ui, sans-serif;
+	font-size: 15px;
+	background: var(--background-primary);
+	color: var(--text-normal);
+	-webkit-font-smoothing: antialiased;
+}
+
+/* Obsidian base link behaviour the snippet overrides */
+a { color: var(--link-color); text-decoration: var(--link-decoration); cursor: pointer; }
+a.external-link { color: var(--link-color); text-decoration: var(--link-external-decoration); }
+a:hover { background-color: var(--background-modifier-hover); border-radius: var(--radius-s); }
+
+/* Obsidian bullet element */
+.list-bullet { display: inline-block; }
+.list-bullet::after {
+	content: "";
+	display: inline-block;
+	width: 4px; height: 4px;
+	border-radius: 50%;
+	background: var(--text-faint);
+	margin-right: 8px;
+	vertical-align: 2px;
+}
+
+ul { margin: 0; padding-left: 22px; }
+h2 { font-size: 1.4em; margin: 1em 0 .5em; }
+strong { font-weight: var(--font-semibold); }
+
+/* Presentation frame for the screenshot */
+.frame {
+	padding: 40px;
+	background:
+		radial-gradient(120% 120% at 15% 0%, rgba(120, 130, 255, .10), transparent 55%),
+		radial-gradient(120% 120% at 85% 100%, rgba(255, 140, 90, .08), transparent 55%),
+		var(--background-primary);
+}
+
+.window {
+	border-radius: 14px;
+	overflow: hidden;
+	background: var(--background-primary);
+	box-shadow: 0 24px 60px rgba(0, 0, 0, .45), 0 0 0 1px rgba(255, 255, 255, .06);
+}
+
+body.theme-light .window {
+	box-shadow: 0 24px 60px rgba(0, 0, 0, .14), 0 0 0 1px rgba(0, 0, 0, .07);
+}
+
+.titlebar {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 11px 14px;
+	background: var(--background-secondary);
+	border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.dot { width: 11px; height: 11px; border-radius: 50%; }
+.dot.r { background: #ff5f57; }
+.dot.y { background: #febc2e; }
+.dot.g { background: #28c840; }
+
+.tab {
+	margin-left: 10px;
+	font-size: 12px;
+	letter-spacing: .04em;
+	color: var(--text-muted);
+}
+</style>
+</head>
+
+<body class="theme-dark">
+<div class="frame">
+<div class="window">
+
+	<div class="titlebar">
+		<span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+		<span class="tab">Overview</span>
+	</div>
+
+	<!-- Exactly the DOM Obsidian produces in Reading view -->
+	<div class="markdown-preview-view markdown-rendered dashboard show-indentation-guide">
+	<div class="markdown-preview-sizer markdown-preview-section">
+
+		<div class="mod-header">
+			<div class="inline-title">Overview</div>
+		</div>
+
+		<div class="el-h2"><h2>Field Notes</h2></div>
+		<div class="el-ul">
+			<ul class="has-list-bullet">
+				<li><div class="list-bullet"></div><strong>Sites</strong>
+					<ul class="has-list-bullet">
+						<li><div class="list-bullet"></div><a class="internal-link">Larch Hollow</a></li>
+						<li><div class="list-bullet"></div><a class="internal-link">River Bend</a></li>
+						<li><div class="list-bullet"></div><a class="internal-link">Tidal flats</a></li>
+					</ul>
+				</li>
+				<li><div class="list-bullet"></div><strong>Species</strong>
+					<ul class="has-list-bullet">
+						<li><div class="list-bullet"></div><a class="internal-link">Amphibians</a></li>
+						<li><div class="list-bullet"></div><a class="internal-link">Lichens</a></li>
+					</ul>
+				</li>
+				<li><div class="list-bullet"></div><strong>Equipment</strong>
+					<ul class="has-list-bullet">
+						<li><div class="list-bullet"></div><a class="internal-link">Trap log</a></li>
+					</ul>
+				</li>
+			</ul>
+		</div>
+
+		<div class="el-h2"><h2>Studio</h2></div>
+		<div class="el-ul">
+			<ul class="has-list-bullet">
+				<li><div class="list-bullet"></div><strong>Sessions</strong>
+					<ul class="has-list-bullet">
+						<li><div class="list-bullet"></div><a class="internal-link">Take 14</a></li>
+						<li><div class="list-bullet"></div><a class="internal-link">Mixdown notes</a></li>
+					</ul>
+				</li>
+				<li><div class="list-bullet"></div><strong>Instruments</strong>
+					<ul class="has-list-bullet">
+						<li><div class="list-bullet"></div><a class="internal-link">Pedalboard</a></li>
+						<li><div class="list-bullet"></div><a class="internal-link">Mic locker</a></li>
+						<li><div class="list-bullet"></div><a class="external-link">Sample bank</a></li>
+					</ul>
+				</li>
+			</ul>
+		</div>
+
+		<div class="el-h2"><h2>Workshop</h2></div>
+		<div class="el-ul">
+			<ul class="has-list-bullet">
+				<li><div class="list-bullet"></div><strong>Projects</strong>
+					<ul class="has-list-bullet">
+						<li><div class="list-bullet"></div><a class="internal-link">Kayak build</a></li>
+						<li><div class="list-bullet"></div><a class="internal-link">Clock repair</a></li>
+						<li><div class="list-bullet"></div><a class="internal-link">Bench vise mount</a></li>
+					</ul>
+				</li>
+				<li><div class="list-bullet"></div><strong>Stock</strong>
+					<ul class="has-list-bullet">
+						<li><div class="list-bullet"></div><a class="internal-link">Hardwood inventory</a></li>
+						<li><div class="list-bullet"></div><a class="internal-link">Fasteners</a></li>
+					</ul>
+				</li>
+				<li><div class="list-bullet"></div><strong>Jigs</strong>
+					<ul class="has-list-bullet">
+						<li><div class="list-bullet"></div><a class="internal-link">Dovetail guide</a></li>
+						<li><div class="list-bullet"></div><a class="internal-link">Circle cutter</a></li>
+					</ul>
+				</li>
+			</ul>
+		</div>
+
+		<div class="el-h2"><h2>Greenhouse</h2></div>
+		<div class="el-ul">
+			<ul class="has-list-bullet">
+				<li><div class="list-bullet"></div><strong>Beds</strong>
+					<ul class="has-list-bullet">
+						<li><div class="list-bullet"></div><a class="internal-link">Bed 3</a></li>
+						<li><div class="list-bullet"></div><a class="internal-link">Bed 7</a></li>
+					</ul>
+				</li>
+				<li><div class="list-bullet"></div><strong>Schedule</strong>
+					<ul class="has-list-bullet">
+						<li><div class="list-bullet"></div><a class="internal-link">Watering plan</a></li>
+					</ul>
+				</li>
+			</ul>
+		</div>
+
+		<div class="el-h2"><h2>Voyages</h2></div>
+		<div class="el-ul">
+			<ul class="has-list-bullet">
+				<li><div class="list-bullet"></div><strong>Planned</strong>
+					<ul class="has-list-bullet">
+						<li><div class="list-bullet"></div><a class="internal-link">Faroe crossing</a></li>
+						<li><div class="list-bullet"></div><a class="internal-link">Hokkaido spring</a></li>
+					</ul>
+				</li>
+				<li><div class="list-bullet"></div><strong>Logbook</strong>
+					<ul class="has-list-bullet">
+						<li><div class="list-bullet"></div><a class="internal-link">Atlantic 2031</a></li>
+						<li><div class="list-bullet"></div><a class="internal-link">Coastal hops</a></li>
+					</ul>
+				</li>
+				<li><div class="list-bullet"></div><strong>Charts</strong>
+					<ul class="has-list-bullet">
+						<li><div class="list-bullet"></div><a class="external-link">Tide tables</a></li>
+					</ul>
+				</li>
+			</ul>
+		</div>
+
+		<div class="el-h2"><h2>Library</h2></div>
+		<div class="el-ul">
+			<ul class="has-list-bullet">
+				<li><div class="list-bullet"></div><strong>Cartography</strong>
+					<ul class="has-list-bullet">
+						<li><div class="list-bullet"></div><a class="internal-link">Old atlases</a></li>
+						<li><div class="list-bullet"></div><a class="internal-link">Sea charts</a></li>
+					</ul>
+				</li>
+				<li><div class="list-bullet"></div><strong>Zines</strong>
+					<ul class="has-list-bullet">
+						<li><div class="list-bullet"></div><a class="internal-link">Issue 07</a></li>
+						<li><div class="list-bullet"></div><a class="internal-link">Issue 08</a></li>
+					</ul>
+				</li>
+			</ul>
+		</div>
+
+		<div class="el-h2"><h2>Archive</h2></div>
+		<div class="el-ul">
+			<ul class="has-list-bullet">
+				<li><div class="list-bullet"></div><strong>Scans</strong>
+					<ul class="has-list-bullet">
+						<li><div class="list-bullet"></div><a class="internal-link">Letters 1971</a></li>
+					</ul>
+				</li>
+				<li><div class="list-bullet"></div><strong>Tapes</strong>
+					<ul class="has-list-bullet">
+						<li><div class="list-bullet"></div><a class="internal-link">Reel index</a></li>
+						<li><div class="list-bullet"></div><a class="internal-link">Restoration log</a></li>
+					</ul>
+				</li>
+			</ul>
+		</div>
+	</div>
+	</div>
+
+</div>
+</div>
+
+<script>
+	// preview.html#light renders the light palette — used to
+	// generate the second screenshot from the very same markup.
+	if (location.hash === '#light') document.body.className = 'theme-light';
+</script>
+</body>
+</html>

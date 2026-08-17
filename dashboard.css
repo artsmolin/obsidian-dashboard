@@ -1,0 +1,389 @@
+/*
+dashboard — a dense masonry dashboard layout with no dead space.
+
+The whole note is one continuous multi-column flow. Sections (a title
+plus its blocks) stream from column to column and fill the available
+space, so no empty band is left on the right and the next section is
+pulled up instead of starting a new row.
+
+Usage — in the note's frontmatter:
+cssclasses:
+  - dashboard
+
+Note structure:
+## Section title
+- **Block title**
+	- [[link]]
+	- [[link]]
+*/
+
+.dashboard {
+	padding: 16px 34px 24px 38px !important;
+	/* Height of the section title strip. Must be a whole number of
+	   pixels and stay the single source of truth: the same value is
+	   reused in the negative margin and in the padding below. */
+	--dash-head: 34px;
+
+	/* Base section colour. Every section overrides it below, and the
+	   border, fill, hover state and title pill are all recomputed
+	   from it automatically. */
+	--dash-accent: var(--text-accent);
+
+	/* Marker width plus the gap after it. The block title is shifted
+	   by exactly this amount, so the same number indents the nested
+	   links — the block body lines up under its title while the
+	   marker hangs in the left margin. */
+	--dash-marker: 5px;
+	--dash-marker-gap: 9px;
+	--dash-indent: calc(var(--dash-marker) + var(--dash-marker-gap));
+
+	/* Some themes (e.g. Border) colour bold text red. Inside block
+	   titles that is a stray accent — restore the normal text colour. */
+	--bold-color: var(--text-normal);
+}
+
+/* The palette is derived from --dash-accent at different strengths.
+   It is declared on the sections themselves rather than on the
+   dashboard root on purpose: a var() inside a custom property is
+   resolved on the element where that property is declared. Declared
+   higher up, the palette would be baked in with the base colour and
+   overriding --dash-accent per section would have no effect.
+   The percentages are deliberately low — the colour should read as a
+   tint, not as a fill, otherwise the dashboard turns into a traffic
+   light. */
+.dashboard .markdown-preview-section > div {
+	--dash-line: color-mix(in srgb, var(--dash-accent) 38%, transparent);
+	--dash-line-strong: color-mix(in srgb, var(--dash-accent) 65%, transparent);
+	--dash-line-soft: color-mix(in srgb, var(--dash-accent) 20%, transparent);
+	--dash-surface: color-mix(in srgb, var(--dash-accent) 5%, transparent);
+	--dash-surface-hover: color-mix(in srgb, var(--dash-accent) 11%, transparent);
+	--dash-chip: color-mix(in srgb, var(--dash-accent) 16%, transparent);
+	--dash-chip-text: color-mix(in srgb, var(--dash-accent) 45%, var(--text-muted));
+}
+
+/* ── Per-section colour ───────────────────────────────────────
+   Colours are assigned in pairs: a section is the heading div plus
+   the following list div, and the title pill needs the same tint as
+   the border. Even number — heading, the odd one after it — blocks.
+   If the colours drift, the div order in the DOM differs and only
+   these numbers need adjusting. A section with no matching rule
+   falls back to the base --dash-accent; nothing breaks. */
+.dashboard .markdown-preview-section > div:nth-of-type(2),
+.dashboard .markdown-preview-section > div:nth-of-type(3) {
+	--dash-accent: var(--color-blue);
+}
+
+.dashboard .markdown-preview-section > div:nth-of-type(4),
+.dashboard .markdown-preview-section > div:nth-of-type(5) {
+	--dash-accent: var(--color-purple);
+}
+
+.dashboard .markdown-preview-section > div:nth-of-type(6),
+.dashboard .markdown-preview-section > div:nth-of-type(7) {
+	--dash-accent: var(--color-orange);
+}
+
+.dashboard .markdown-preview-section > div:nth-of-type(8),
+.dashboard .markdown-preview-section > div:nth-of-type(9) {
+	--dash-accent: var(--color-green);
+}
+
+.dashboard .markdown-preview-section > div:nth-of-type(10),
+.dashboard .markdown-preview-section > div:nth-of-type(11) {
+	--dash-accent: var(--color-cyan);
+}
+
+.dashboard .markdown-preview-section > div:nth-of-type(12),
+.dashboard .markdown-preview-section > div:nth-of-type(13) {
+	--dash-accent: var(--color-pink);
+}
+
+.dashboard .markdown-preview-section > div:nth-of-type(14),
+.dashboard .markdown-preview-section > div:nth-of-type(15) {
+	--dash-accent: var(--color-yellow);
+}
+
+/* A dashboard needs the whole window, not the readable line width */
+.dashboard.markdown-preview-view.is-readable-line-width .markdown-preview-section,
+.dashboard.markdown-preview-view.is-readable-line-width .markdown-preview-section > div {
+	width: 100% !important;
+	max-width: 100% !important;
+}
+
+/* ── Continuous multi-column flow ─────────────────────────── */
+.dashboard .markdown-preview-section {
+	display: block !important;
+	max-width: 100%;
+	column-width: 270px;
+	column-gap: 18px;
+	column-fill: balance;
+	orphans: 1;
+	widows: 1;
+}
+
+/* A section is never split across columns */
+.dashboard .markdown-preview-section > div {
+	break-inside: avoid;
+	margin: 0;
+}
+
+/* ── One element draws the whole section outline ──────────────
+   The heading and the block list are two sibling divs. While the
+   border was assembled from two halves, a sub-pixel gap always
+   appeared where they met: the browser rounds the edges of adjacent
+   boxes independently. So the list element now draws the entire
+   outline, including the area behind the heading, and the heading
+   sits on top of it with no border of its own. The side lines
+   belong to a single element and are therefore continuous. */
+
+/* Heading: no border, text only */
+.dashboard .markdown-preview-section > div:has(> h2) {
+	position: relative;
+	z-index: 1;
+	break-after: avoid;
+	break-inside: avoid;
+	box-sizing: border-box;
+	min-height: var(--dash-head);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin: 0;
+	padding: 0 12px;
+	border: none;
+}
+
+/* Blocks plus the outline of the whole section.
+   The negative margin-top lifts the top border up to the top of the
+   heading; an equal padding-top pushes the content back down. */
+.dashboard .markdown-preview-section > div:has(> ul) {
+	break-inside: avoid;
+	margin: calc(-1 * var(--dash-head)) 0 18px;
+	padding: var(--dash-head) 14px 13px;
+	border: 1px solid var(--dash-line);
+	border-radius: 14px;
+	background-color: var(--dash-surface);
+	transition: border-color 140ms ease, background-color 140ms ease;
+}
+
+/* Gentle hover response — the section wakes up without jumping */
+.dashboard .markdown-preview-section > div:has(> ul):hover {
+	border-color: var(--dash-line-strong);
+	background-color: var(--dash-surface-hover);
+}
+
+/* The note header is useless in Reading view: the inline title just
+   repeats the tab name and properties are not editable here. These
+   rules are scoped to .markdown-preview-view on purpose — in Editing
+   view both the title and the properties stay in place. */
+.markdown-preview-view.dashboard .markdown-preview-section > .mod-header,
+.markdown-preview-view.dashboard .inline-title,
+.markdown-preview-view.dashboard .metadata-container,
+.markdown-preview-view.dashboard .markdown-preview-section .title {
+	display: none !important;
+}
+
+/* Footer spans the full width, outside the columns */
+.dashboard .markdown-preview-section > .mod-footer {
+	column-span: all;
+}
+
+/* ── Section title: a pill-shaped chip ────────────────────── */
+.dashboard h2 {
+	position: relative;
+	font-size: 0.76em;
+	font-weight: 650;
+	text-transform: uppercase;
+	letter-spacing: 0.11em;
+	color: var(--dash-chip-text);
+	line-height: 16px;
+	text-align: center;
+	/* letter-spacing also adds a gap after the last letter — this
+	   compensates for it, otherwise the text sits left of centre */
+	text-indent: 0.11em;
+	margin: 0 !important;
+	/* The chip. The heading is a flex item, so its width equals the
+	   width of its text: the background hugs the label instead of
+	   stretching across the whole strip. */
+	padding: 4px 13px !important;
+	border: none !important;
+	border-radius: 999px;
+	background: var(--dash-chip);
+}
+
+/* Themes give headings their own outer margin — reset it */
+.dashboard .markdown-preview-section > div:has(> h2) > h2 {
+	margin-block-start: 0 !important;
+	margin-block-end: 0 !important;
+}
+
+/* Some themes (e.g. Border) draw a coloured indicator bar (::before)
+   and a gradient divider (::after) on every h2. Both are redundant
+   here — the dashboard supplies its own chrome. */
+.dashboard h2::before,
+.dashboard h2::after,
+.dashboard .markdown-preview-section > div > h2::before,
+.dashboard .markdown-preview-section > div > h2::after {
+	content: none !important;
+	display: none !important;
+	background: none !important;
+}
+
+/* ── Blocks inside a section ──────────────────────────────── */
+.dashboard .markdown-preview-section > div > ul {
+	display: block;
+	list-style: none;
+	margin: 9px 0 0;
+	padding: 0;
+}
+
+/* Blocks get no outline of their own — the section supplies it.
+   They are separated from each other by a single hairline, with no
+   nested frames. */
+.dashboard .markdown-preview-section > div > ul > li {
+	margin: 0;
+	padding: 10px 0 !important;
+	border-top: 1px solid var(--dash-line-soft);
+	break-inside: avoid;
+}
+
+.dashboard .markdown-preview-section > div > ul > li:first-child {
+	border-top: none;
+	padding-top: 2px !important;
+}
+
+.dashboard .markdown-preview-section > div > ul > li:last-child {
+	padding-bottom: 0 !important;
+}
+
+/* Bullets are unwanted at every level. Kill every way of drawing
+   them: the .list-bullet element (and its ::after, which is how
+   themes render the dot), pseudo-elements and the native ::marker. */
+.dashboard .list-bullet,
+.dashboard .list-bullet::after,
+.dashboard .list-collapse-indicator {
+	display: none !important;
+	content: none !important;
+}
+
+.dashboard li::marker,
+.dashboard li::before {
+	content: none !important;
+}
+
+.dashboard ul,
+.dashboard ul.has-list-bullet {
+	list-style: none !important;
+}
+
+/* The block body lines up exactly under its title text */
+.dashboard ul ul {
+	margin: 5px 0 0;
+	padding-left: var(--dash-indent);
+}
+
+.dashboard li {
+	line-height: 1.5;
+}
+
+/* Block title. Instead of an emoji, a marker drawn by CSS itself:
+   a 5px square in the section colour. One icon for every block —
+   they are told apart by the section's hue, not by a zoo of
+   pictures. */
+.dashboard .markdown-preview-section > div > ul > li > strong {
+	color: var(--text-normal) !important;
+	font-weight: var(--font-semibold, 600);
+}
+
+.dashboard .markdown-preview-section > div > ul > li > strong::before {
+	content: "";
+	display: inline-block;
+	width: var(--dash-marker);
+	height: var(--dash-marker);
+	margin-right: var(--dash-marker-gap);
+	border-radius: 1.5px;
+	background: var(--dash-accent);
+	vertical-align: 0.12em;
+	opacity: 0.9;
+}
+
+/* Links: smooth response and a rounded hover highlight */
+.dashboard a {
+	border-radius: 5px;
+	transition: color 120ms ease, background-color 120ms ease;
+}
+
+.dashboard ul ul li {
+	margin: 0;
+	padding-left: 0 !important;
+}
+
+.dashboard li > p,
+.dashboard li > div > p {
+	margin: 0 !important;
+}
+
+/* Drop the indentation guides */
+.dashboard.markdown-rendered.show-indentation-guide li > ul::before,
+.dashboard.markdown-rendered.show-indentation-guide li > ol::before {
+	display: none;
+}
+
+/* ── Links: no underlines, typed by a trailing glyph ───────────
+   The underline is removed through Obsidian's own variables rather
+   than text-decoration, so the rule does not fight the theme and
+   covers internal links, external links and :hover alike. */
+.dashboard {
+	--link-decoration: none;
+	--link-decoration-hover: none;
+	--link-external-decoration: none;
+	--link-external-decoration-hover: none;
+}
+
+/* ¶ — a pilcrow, textual by nature: a note in the vault.
+   ↗ — leaving the vault: an external link.
+   The colour is forced muted — without !important the pseudo-element
+   would inherit the link colour from the theme. */
+.dashboard a.internal-link::after {
+	content: "¶";
+	margin-left: 5px;
+	font-size: 0.78em;
+	vertical-align: 0.04em;
+	color: var(--text-faint) !important;
+	opacity: 0.7;
+	text-decoration: none;
+}
+
+.dashboard a.external-link::after {
+	content: "↗";
+	margin-left: 5px;
+	font-size: 0.8em;
+	vertical-align: 0.05em;
+	color: var(--text-faint) !important;
+	opacity: 0.7;
+	text-decoration: none;
+}
+
+/* Themes may give external links their own background icon — it
+   would duplicate the arrow */
+.dashboard a.external-link {
+	background-image: none !important;
+	padding-right: 0 !important;
+}
+
+/* Unresolved note — the marker turns red along with the link */
+.dashboard a.internal-link.is-unresolved::after {
+	color: var(--text-error) !important;
+	opacity: 0.7;
+}
+
+/* Narrow window / mobile */
+@media (max-width: 600px) {
+	.dashboard {
+		padding: 10px 14px 16px 16px !important;
+	}
+
+	.dashboard .markdown-preview-section {
+		column-width: 150px;
+		column-gap: 10px;
+	}
+}
