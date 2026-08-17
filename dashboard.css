@@ -43,7 +43,7 @@ Note structure:
 	   header still overlaps — env(safe-area-inset-top) is added on top
 	   of it and reports 0 in some webviews, so it cannot be relied on
 	   alone. */
-	--dash-pad-top-mobile: 44px;
+	--dash-pad-top-mobile: 49px;
 
 	/* Some themes (e.g. Border) colour bold text red. Inside block
 	   titles that is a stray accent — restore the normal text colour. */
