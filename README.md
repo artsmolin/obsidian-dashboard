@@ -107,6 +107,8 @@ Two rules worth knowing:
 
 - **Indent with tabs, not spaces.** Obsidian's default is tabs; spaces produce a different DOM and
   the nesting styles will not match.
+- **Mobile falls back to one column.** Below 600px the layout drops to a single column — two
+  narrow columns are cramped on a phone and misalign at column breaks.
 - **Section order controls packing.** Sections flow in document order and are never split across
   columns, so a tall section followed by another tall one can leave a gap. Put short sections next to
   each other and the columns fill evenly.
@@ -123,7 +125,7 @@ Everything tunable lives in one block at the top of the file.
 | `--dash-accent` | `var(--text-accent)` | Base section colour, overridden per section below. |
 | `--dash-marker` | `5px` | Size of the square marker before a block title. |
 | `--dash-marker-gap` | `9px` | Gap between marker and title. Block content is indented by marker + gap. |
-| `--dash-pad-top-mobile` | `20px` | Top padding on mobile, added to the device safe area. Raise it if the app header still overlaps. |
+| `--dash-pad-top-mobile` | `44px` | Top padding on mobile, added to the device safe area. Raise it if the app header still overlaps. |
 | `--dash-line` | 38% of accent | Section border. |
 | `--dash-line-soft` | 20% of accent | Divider between blocks. |
 | `--dash-surface` | 5% of accent | Section fill. |

@@ -39,9 +39,11 @@ Note structure:
 
 	/* Extra top padding on mobile. Hiding .mod-header also removes the
 	   spacer that kept the note clear of the app's view header, so it
-	   has to be given back explicitly. Raise this if your setup hides
-	   the header entirely (e.g. the Hider plugin). */
-	--dash-pad-top-mobile: 20px;
+	   has to be given back explicitly. Tune this one number if the
+	   header still overlaps — env(safe-area-inset-top) is added on top
+	   of it and reports 0 in some webviews, so it cannot be relied on
+	   alone. */
+	--dash-pad-top-mobile: 44px;
 
 	/* Some themes (e.g. Border) colour bold text red. Inside block
 	   titles that is a stray accent — restore the normal text colour. */
@@ -382,15 +384,22 @@ Note structure:
 	opacity: 0.7;
 }
 
-/* Narrow window */
+/* ── Narrow window: a single column ───────────────────────────
+   Two 150px columns on a phone are both cramped and fragile: a
+   section carries a negative top margin, and browsers discard
+   margins at a column break, so whichever section lands at the top
+   of the second column sits a few pixels off from the first. With
+   one column there is no break to disagree about and the sections
+   line up by construction. */
 @media (max-width: 600px) {
 	.dashboard {
 		padding: 10px 14px 16px 16px !important;
 	}
 
 	.dashboard .markdown-preview-section {
-		column-width: 150px;
-		column-gap: 10px;
+		column-width: auto;
+		column-count: 1;
+		column-gap: 0;
 	}
 }
 
