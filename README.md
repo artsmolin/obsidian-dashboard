@@ -123,6 +123,7 @@ Everything tunable lives in one block at the top of the file.
 | `--dash-accent` | `var(--text-accent)` | Base section colour, overridden per section below. |
 | `--dash-marker` | `5px` | Size of the square marker before a block title. |
 | `--dash-marker-gap` | `9px` | Gap between marker and title. Block content is indented by marker + gap. |
+| `--dash-pad-top-mobile` | `20px` | Top padding on mobile, added to the device safe area. Raise it if the app header still overlaps. |
 | `--dash-line` | 38% of accent | Section border. |
 | `--dash-line-soft` | 20% of accent | Divider between blocks. |
 | `--dash-surface` | 5% of accent | Section fill. |

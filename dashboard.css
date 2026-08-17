@@ -37,6 +37,12 @@ Note structure:
 	--dash-marker-gap: 9px;
 	--dash-indent: calc(var(--dash-marker) + var(--dash-marker-gap));
 
+	/* Extra top padding on mobile. Hiding .mod-header also removes the
+	   spacer that kept the note clear of the app's view header, so it
+	   has to be given back explicitly. Raise this if your setup hides
+	   the header entirely (e.g. the Hider plugin). */
+	--dash-pad-top-mobile: 20px;
+
 	/* Some themes (e.g. Border) colour bold text red. Inside block
 	   titles that is a stray accent — restore the normal text colour. */
 	--bold-color: var(--text-normal);
@@ -376,7 +382,7 @@ Note structure:
 	opacity: 0.7;
 }
 
-/* Narrow window / mobile */
+/* Narrow window */
 @media (max-width: 600px) {
 	.dashboard {
 		padding: 10px 14px 16px 16px !important;
@@ -386,4 +392,22 @@ Note structure:
 		column-width: 150px;
 		column-gap: 10px;
 	}
+}
+
+/* ── Obsidian mobile ──────────────────────────────────────────
+   The app lays its view header over the top of the note, and the
+   .mod-header hidden further up is exactly what used to reserve room
+   for it — without that spacer the first section slides under the
+   interface. Give the space back explicitly and add the device safe
+   area on top, so the layout also clears a notch or a status bar
+   when the header itself is hidden.
+
+   The selector is more specific than the media query above, so this
+   wins regardless of rule order. */
+.is-mobile .dashboard {
+	padding-top: calc(
+		var(--dash-pad-top-mobile) + env(safe-area-inset-top, 0px)
+	) !important;
+	padding-left: max(14px, env(safe-area-inset-left, 0px)) !important;
+	padding-right: max(14px, env(safe-area-inset-right, 0px)) !important;
 }
