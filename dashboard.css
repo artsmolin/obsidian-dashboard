@@ -1,10 +1,22 @@
 /*
-dashboard — a dense masonry dashboard layout with no dead space.
+dashboard — a dense, low-chrome link dashboard.
 
-The whole note is one continuous multi-column flow. Sections (a title
-plus its blocks) stream from column to column and fill the available
-space, so no empty band is left on the right and the next section is
-pulled up instead of starting a new row.
+Design principles applied here:
+
+  1. Density first. Every metric comes from a 2px baseline grid and is
+     exposed as a variable at the top, so the whole layout can be
+     tightened or loosened by editing numbers in one place.
+  2. Maximum ink-to-space ratio. Cards are allowed to flow across
+     column boundaries, so columns fill to the bottom instead of
+     leaving ragged dead space under short sections.
+  3. Minimum chrome. One hairline per card, one hairline per row.
+     No nested frames, no bullets, no underlines.
+  4. Colour as data, not decoration. Each section gets one hue, used
+     at low strength as a tint. The hue identifies the group; it is
+     never a fill.
+  5. Mark the exception, not the rule. Most links here leave the
+     vault, so external links carry no glyph — only the rarer
+     internal note links are marked.
 
 Usage — in the note's frontmatter:
 cssclasses:
@@ -14,26 +26,74 @@ Note structure:
 ## Section title
 - **Block title**
 	- [[link]]
-	- [[link]]
+	- [link](url)
 */
 
 .dashboard {
-	padding: 16px 34px 24px 38px !important;
-	/* Minimum height of the section title strip above each card. */
-	--dash-head: 34px;
+	/* ── Density scale ────────────────────────────────────────
+	   These eight numbers control the entire layout. */
 
-	/* Base section colour. Every section overrides it below, and the
-	   border, fill, hover state and title pill are all recomputed
-	   from it automatically. */
-	--dash-accent: var(--text-accent);
+	/* Target column width. Smaller = more columns = denser. The real
+	   width is computed by the browser, this is only a minimum. */
+	--dash-col: 228px;
+	/* Horizontal gap between columns */
+	--dash-gap: 12px;
+	/* Vertical gap below a card, before the next section title */
+	--dash-card-gap: 13px;
+	/* Corner radius of the card */
+	--dash-radius: 13px;
+	/* Height of the title strip above each card, and the gap between
+	   that strip and the card it belongs to. The pill is centred in
+	   the strip, so --dash-head sets how much air surrounds it. */
+	--dash-head: 28px;
+	--dash-head-gap: 5px;
+	/* Card inner padding */
+	--dash-pad-y: 9px;
+	--dash-pad-x: 10px;
+	/* Vertical padding above and below one block row inside a card.
+	   The visible gap between two blocks is twice this plus the
+	   hairline, so 8px here reads as ~17px of separation. */
+	--dash-row-y: 8px;
+	/* CSS cannot select "a row that wrapped", so the two cases are
+	   separated by which lever controls each gap:
+	     --dash-lh      spaces the lines INSIDE one row — it only ever
+	                    shows up where a row actually wraps.
+	     --dash-link-y  pads one row away from the NEXT row.
+	   Pulling the leading tight while holding the row padding makes a
+	   wrapped line hug its own first line, without the card growing:
+	   the runover belongs to its row by rhythm alone, no indent and no
+	   divider. Keep the row gap near 1.5× the leading. */
+	--dash-lh: 1.2;
+	--dash-link-y: 5px;
+	/* Gap between a block title and the first link under it */
+	--dash-title-gap: 4px;
+	/* Overall type scale of the dashboard relative to the vault font.
+	   1 = the vault's normal reading size. Density comes from the
+	   spacing metrics above, not from shrinking the text. */
+	--dash-scale: 1;
+
+	/* ── Fragmentation ────────────────────────────────────────
+	   avoid — a card is never split across a column boundary. Each
+	           section stays one whole object, which is what makes the
+	           dashboard scannable; the cost is some slack at the
+	           bottom of the shorter columns.
+	   auto  — a tall card may continue in the next column, filling
+	           the columns completely at the price of split cards.
+	   Change this single word to switch behaviour. */
+	--dash-split: avoid;
 
 	/* Marker width plus the gap after it. The block title is shifted
 	   by exactly this amount, so the same number indents the nested
 	   links — the block body lines up under its title while the
 	   marker hangs in the left margin. */
-	--dash-marker: 5px;
-	--dash-marker-gap: 9px;
+	--dash-marker: 4px;
+	--dash-marker-gap: 8px;
 	--dash-indent: calc(var(--dash-marker) + var(--dash-marker-gap));
+
+	/* Base section colour. Every section overrides it below, and the
+	   border, fill, hover state and title dot are all recomputed
+	   from it automatically. */
+	--dash-accent: var(--text-accent);
 
 	/* Extra top padding on mobile. Hiding .mod-header also removes the
 	   spacer that kept the note clear of the app's view header, so it
@@ -46,6 +106,8 @@ Note structure:
 	/* Some themes (e.g. Border) colour bold text red. Inside block
 	   titles that is a stray accent — restore the normal text colour. */
 	--bold-color: var(--text-normal);
+
+	padding: 12px 22px 18px 24px !important;
 }
 
 /* The palette is derived from --dash-accent at different strengths.
@@ -58,18 +120,26 @@ Note structure:
    tint, not as a fill, otherwise the dashboard turns into a traffic
    light. */
 .dashboard .markdown-preview-section > div {
-	--dash-line: color-mix(in srgb, var(--dash-accent) 38%, transparent);
-	--dash-line-strong: color-mix(in srgb, var(--dash-accent) 65%, transparent);
-	--dash-line-soft: color-mix(in srgb, var(--dash-accent) 20%, transparent);
-	--dash-surface: color-mix(in srgb, var(--dash-accent) 5%, transparent);
-	--dash-surface-hover: color-mix(in srgb, var(--dash-accent) 11%, transparent);
-	--dash-chip: color-mix(in srgb, var(--dash-accent) 16%, transparent);
-	--dash-chip-text: color-mix(in srgb, var(--dash-accent) 45%, var(--text-muted));
+	--dash-line: color-mix(in srgb, var(--dash-accent) 32%, transparent);
+	--dash-line-strong: color-mix(in srgb, var(--dash-accent) 58%, transparent);
+	--dash-line-soft: color-mix(in srgb, var(--dash-accent) 16%, transparent);
+	--dash-surface: color-mix(in srgb, var(--dash-accent) 4%, transparent);
+	--dash-surface-hover: color-mix(in srgb, var(--dash-accent) 10%, transparent);
+	--dash-chip: color-mix(in srgb, var(--dash-accent) 13%, transparent);
+	/* The title pill. Kept separate from --dash-chip so the pill can
+	   be tuned without dragging inline code and link hovers with it. */
+	--dash-pill: color-mix(in srgb, var(--dash-accent) 10%, transparent);
+	--dash-pill-hover: color-mix(in srgb, var(--dash-accent) 18%, transparent);
+	/* Small caps carry further than lowercase at the same darkness, so
+	   the label is mixed toward muted rather than toward normal text.
+	   The tracking does the work of standing out; the colour does not
+	   have to. */
+	--dash-label: color-mix(in srgb, var(--dash-accent) 45%, var(--text-muted));
 }
 
 /* ── Per-section colour ───────────────────────────────────────
    Colours are assigned in pairs: a section is the heading div plus
-   the following list div, and the title pill needs the same tint as
+   the following list div, and the title dot needs the same tint as
    the border. Even number — heading, the odd one after it — blocks.
    If the colours drift, the div order in the DOM differs and only
    these numbers need adjusting. A section with no matching rule
@@ -109,6 +179,21 @@ Note structure:
 	--dash-accent: var(--color-yellow);
 }
 
+.dashboard .markdown-preview-section > div:nth-of-type(16),
+.dashboard .markdown-preview-section > div:nth-of-type(17) {
+	--dash-accent: var(--color-red);
+}
+
+.dashboard .markdown-preview-section > div:nth-of-type(18),
+.dashboard .markdown-preview-section > div:nth-of-type(19) {
+	--dash-accent: var(--color-blue);
+}
+
+.dashboard .markdown-preview-section > div:nth-of-type(20),
+.dashboard .markdown-preview-section > div:nth-of-type(21) {
+	--dash-accent: var(--color-purple);
+}
+
 /* A dashboard needs the whole window, not the readable line width */
 .dashboard.markdown-preview-view.is-readable-line-width .markdown-preview-section,
 .dashboard.markdown-preview-view.is-readable-line-width .markdown-preview-section > div {
@@ -116,34 +201,39 @@ Note structure:
 	max-width: 100% !important;
 }
 
-/* ── Continuous multi-column flow ─────────────────────────── */
+/* ── Continuous multi-column flow ─────────────────────────────
+   The whole note is one column flow: sections stream from column to
+   column and pack against each other, so a short section never
+   reserves a full-width band. */
 .dashboard .markdown-preview-section {
 	display: block !important;
 	max-width: 100%;
-	column-width: 270px;
-	column-gap: 18px;
+	font-size: calc(1em * var(--dash-scale));
+	column-width: var(--dash-col);
+	column-gap: var(--dash-gap);
 	column-fill: balance;
 	orphans: 1;
 	widows: 1;
 }
 
-/* A section is never split across columns */
 .dashboard .markdown-preview-section > div {
-	break-inside: avoid;
 	margin: 0;
 }
 
-/* ── Section: a title above a card ────────────────────────────
-   The heading and the block list are two sibling divs, and only the
-   list is outlined. Keeping the title outside the card means the
-   outline is drawn by a single element, so there is no seam where
-   two boxes would otherwise meet — browsers round the edges of
-   adjacent boxes independently and a hairline gap shows through. */
+/* ── Section title strip ──────────────────────────────────────
+   The heading sits above the card, outside its outline. That keeps
+   the whole frame in the hands of one element: two stacked boxes
+   round their adjacent edges independently, and a hairline of page
+   background shows through the join — which is exactly the seam the
+   attached-header versions kept having to patch.
 
-/* Heading: sits above the card, outside its outline */
+   The strip itself draws nothing. It is a centring track for the
+   pill: no border, no fill, no divider. Everything that separates
+   the title from the card is done by the gap between them. */
 .dashboard .markdown-preview-section > div:has(> h2) {
 	position: relative;
 	z-index: 1;
+	/* Never leave a section title stranded at the bottom of a column */
 	break-after: avoid;
 	break-inside: avoid;
 	box-sizing: border-box;
@@ -152,26 +242,102 @@ Note structure:
 	align-items: center;
 	justify-content: center;
 	margin: 0;
-	padding: 0 12px 6px;
+	padding: 0 10px var(--dash-head-gap);
 	border: none;
+	background: none;
 }
 
-/* Blocks. The outline wraps only them — the section title stands
-   above the card rather than inside it. */
+/* ── Section title: a pill-shaped chip ────────────────────────
+   Tracked-out small caps on a rounded tint. The heading is a flex
+   item in a centring track, so its width is the width of its own
+   text: the fill hugs the label instead of stretching across the
+   strip, and each section is tagged rather than banded. */
+.dashboard h2 {
+	/* Tracking, and the correction it forces. letter-spacing adds its
+	   gap after EVERY letter including the last, so the glyphs sit
+	   half a gap left of the box centre and text-indent puts them
+	   back.
+
+	   The !important is not decoration. Border sets
+
+	     body:not(.heading-indicator-off)
+	       .markdown-preview-sizer>div>:is(h1…h6) { text-indent: 9px }
+
+	   to clear room for the accent bar it draws at the left of every
+	   heading. That selector scores (0,2,3) against this rule's
+	   (0,1,1), so without the flag the theme wins outright and the
+	   label sits 9px right of centre — the bar it was indenting for is
+	   hidden further down, so the space is reserved for nothing. */
+	--dash-track: 0.1em;
+	position: relative;
+	flex: 0 0 auto;
+	font-size: 0.7em;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: var(--dash-track);
+	text-indent: calc(var(--dash-track) / 2) !important;
+	color: var(--dash-label);
+	line-height: 14px;
+	text-align: center;
+	margin: 0 !important;
+	padding: 4px 12px !important;
+	border: none !important;
+	border-radius: 999px;
+	background: var(--dash-pill);
+}
+
+/* Themes give headings their own outer margin — reset it */
+.dashboard .markdown-preview-section > div:has(> h2) > h2 {
+	margin-block-start: 0 !important;
+	margin-block-end: 0 !important;
+}
+
+/* Some themes (e.g. Border) draw a coloured indicator bar (::before)
+   and a gradient divider (::after) on every h2; custom.css adds a
+   hover "H2" tag. All are redundant here — the dashboard supplies
+   its own chrome. */
+.dashboard h2::before,
+.dashboard h2::after,
+.dashboard h2:hover::before,
+.dashboard .markdown-preview-section > div > h2::before,
+.dashboard .markdown-preview-section > div > h2::after {
+	content: none !important;
+	display: none !important;
+	background: none !important;
+}
+
+/* ── Card ─────────────────────────────────────────────────────
+   The outline wraps only the blocks — the title stands above it. One
+   element draws the whole frame, so all four corners are rounded by
+   the same box and there is no join to go wrong.
+
+   break-inside is driven by --dash-split, which defaults to `avoid`:
+   the card is one indivisible object. box-decoration-break is kept
+   only so that flipping --dash-split to `auto` still renders the
+   border and background correctly on each fragment. */
 .dashboard .markdown-preview-section > div:has(> ul) {
-	break-inside: avoid;
-	margin: 0 0 18px;
-	padding: 12px 14px 13px;
+	break-inside: var(--dash-split);
+	-webkit-box-decoration-break: clone;
+	box-decoration-break: clone;
+	margin: 0 0 var(--dash-card-gap);
+	padding: var(--dash-pad-y) var(--dash-pad-x);
 	border: 1px solid var(--dash-line);
-	border-radius: 14px;
+	border-radius: var(--dash-radius);
 	background-color: var(--dash-surface);
 	transition: border-color 140ms ease, background-color 140ms ease;
 }
 
-/* Gentle hover response — the section wakes up without jumping */
+/* Gentle hover response — the section wakes up without jumping. The
+   pill belongs to the card even though it sits outside the outline,
+   so :has(+ div:hover) reaches back up the sibling chain and lifts
+   the tint with it. */
 .dashboard .markdown-preview-section > div:has(> ul):hover {
 	border-color: var(--dash-line-strong);
 	background-color: var(--dash-surface-hover);
+}
+
+.dashboard .markdown-preview-section > div:has(> h2):has(+ div:hover) > h2 {
+	background: var(--dash-pill-hover);
 }
 
 /* The note header is useless in Reading view: the inline title just
@@ -190,48 +356,7 @@ Note structure:
 	column-span: all;
 }
 
-/* ── Section title: a pill-shaped chip ────────────────────── */
-.dashboard h2 {
-	position: relative;
-	font-size: 0.76em;
-	font-weight: 650;
-	text-transform: uppercase;
-	letter-spacing: 0.11em;
-	color: var(--dash-chip-text);
-	line-height: 16px;
-	text-align: center;
-	/* letter-spacing also adds a gap after the last letter — this
-	   compensates for it, otherwise the text sits left of centre */
-	text-indent: 0.11em;
-	margin: 0 !important;
-	/* The chip. The heading is a flex item, so its width equals the
-	   width of its text: the background hugs the label instead of
-	   stretching across the whole strip. */
-	padding: 4px 13px !important;
-	border: none !important;
-	border-radius: 999px;
-	background: var(--dash-chip);
-}
-
-/* Themes give headings their own outer margin — reset it */
-.dashboard .markdown-preview-section > div:has(> h2) > h2 {
-	margin-block-start: 0 !important;
-	margin-block-end: 0 !important;
-}
-
-/* Some themes (e.g. Border) draw a coloured indicator bar (::before)
-   and a gradient divider (::after) on every h2. Both are redundant
-   here — the dashboard supplies its own chrome. */
-.dashboard h2::before,
-.dashboard h2::after,
-.dashboard .markdown-preview-section > div > h2::before,
-.dashboard .markdown-preview-section > div > h2::after {
-	content: none !important;
-	display: none !important;
-	background: none !important;
-}
-
-/* ── Blocks inside a section ──────────────────────────────── */
+/* ── Blocks inside a card ─────────────────────────────────── */
 .dashboard .markdown-preview-section > div > ul {
 	display: block;
 	list-style: none;
@@ -239,23 +364,24 @@ Note structure:
 	padding: 0;
 }
 
-/* Blocks get no outline of their own — the section supplies it.
-   They are separated from each other by a single hairline, with no
-   nested frames. */
+/* Blocks get no outline of their own — the card supplies it. They
+   are separated from each other by a single hairline, with no nested
+   frames. A block is the smallest unbreakable unit: when a card is
+   allowed to split, it splits between blocks, never inside one. */
 .dashboard .markdown-preview-section > div > ul > li {
 	margin: 0;
-	padding: 10px 0 !important;
+	padding: var(--dash-row-y) 0 !important;
 	border-top: 1px solid var(--dash-line-soft);
 	break-inside: avoid;
 }
 
 .dashboard .markdown-preview-section > div > ul > li:first-child {
 	border-top: none;
-	padding-top: 2px !important;
+	padding-top: 1px !important;
 }
 
 .dashboard .markdown-preview-section > div > ul > li:last-child {
-	padding-bottom: 0 !important;
+	padding-bottom: 1px !important;
 }
 
 /* Bullets are unwanted at every level. Kill every way of drawing
@@ -280,44 +406,19 @@ Note structure:
 
 /* The block body lines up exactly under its title text */
 .dashboard ul ul {
-	margin: 5px 0 0;
+	margin: var(--dash-title-gap) 0 0;
 	padding-left: var(--dash-indent);
 }
 
-.dashboard li {
-	line-height: 1.5;
-}
-
-/* Block title. Instead of an emoji, a marker drawn by CSS itself:
-   a 5px square in the section colour. One icon for every block —
-   they are told apart by the section's hue, not by a zoo of
-   pictures. */
-.dashboard .markdown-preview-section > div > ul > li > strong {
-	color: var(--text-normal) !important;
-	font-weight: var(--font-semibold, 600);
-}
-
-.dashboard .markdown-preview-section > div > ul > li > strong::before {
-	content: "";
-	display: inline-block;
-	width: var(--dash-marker);
-	height: var(--dash-marker);
-	margin-right: var(--dash-marker-gap);
-	border-radius: 1.5px;
-	background: var(--dash-accent);
-	vertical-align: 0.12em;
-	opacity: 0.9;
-}
-
-/* Links: smooth response and a rounded hover highlight */
-.dashboard a {
-	border-radius: 5px;
-	transition: color 120ms ease, background-color 120ms ease;
-}
-
+/* A wrapped line is kept with its own row by proximity, not by
+   indentation: lines inside one row sit at --dash-lh, while rows are
+   held apart by --dash-link-y above and below. As long as the gap
+   between rows is clearly larger than the gap between lines, the eye
+   groups them correctly and the left edge stays flush. */
 .dashboard ul ul li {
 	margin: 0;
-	padding-left: 0 !important;
+	padding: var(--dash-link-y) 0 !important;
+	line-height: var(--dash-lh);
 }
 
 .dashboard li > p,
@@ -331,7 +432,43 @@ Note structure:
 	display: none;
 }
 
-/* ── Links: no underlines, typed by a trailing glyph ───────────
+/* ── Block title ──────────────────────────────────────────────
+   Instead of an emoji, a marker drawn by CSS itself: a small square
+   in the section colour. One icon for every block — they are told
+   apart by the section's hue, not by a zoo of pictures. */
+.dashboard .markdown-preview-section > div > ul > li > strong {
+	color: var(--text-normal) !important;
+	font-weight: var(--font-semibold, 600);
+	letter-spacing: 0.005em;
+}
+
+.dashboard .markdown-preview-section > div > ul > li > strong::before {
+	content: "";
+	display: inline-block;
+	width: var(--dash-marker);
+	height: var(--dash-marker);
+	margin-right: var(--dash-marker-gap);
+	border-radius: 1px;
+	background: var(--dash-accent);
+	vertical-align: 0.16em;
+	opacity: 0.9;
+}
+
+/* ── Inline code ──────────────────────────────────────────────
+   IDs and segment names are the payload of a dashboard, not asides.
+   Tightened to a chip so a UUID takes one line, and tinted with the
+   section colour so it belongs to its card. */
+.dashboard code {
+	font-size: 0.82em;
+	line-height: 1.3;
+	padding: 1px 5px;
+	border-radius: 4px;
+	background-color: var(--dash-chip);
+	color: var(--text-normal);
+	word-break: break-all;
+}
+
+/* ── Links ────────────────────────────────────────────────────
    The underline is removed through Obsidian's own variables rather
    than text-decoration, so the rule does not fight the theme and
    covers internal links, external links and :hover alike. */
@@ -342,50 +479,54 @@ Note structure:
 	--link-external-decoration-hover: none;
 }
 
-/* ¶ — a pilcrow, textual by nature: a note in the vault.
-   ↗ — leaving the vault: an external link.
-   The colour is forced muted — without !important the pseudo-element
-   would inherit the link colour from the theme. */
-.dashboard a.internal-link::after {
-	content: "¶";
-	margin-left: 5px;
-	font-size: 0.78em;
-	vertical-align: 0.04em;
-	color: var(--text-faint) !important;
-	opacity: 0.7;
-	text-decoration: none;
+/* The hover highlight is padded outward with a matching negative
+   margin, so it never reflows the row it sits in. */
+.dashboard a {
+	padding: 1px 3px;
+	margin: 0 -3px;
+	border-radius: 4px;
+	transition: color 120ms ease, background-color 120ms ease;
 }
 
+.dashboard a:hover {
+	background-color: var(--dash-chip);
+}
+
+/* Only the trip out of the vault is marked. Staying inside is the
+   default here, and a default needs no glyph — a link with nothing
+   after it opens a note. That leaves one symbol on the dashboard
+   instead of two competing ones, and the rows stay quiet.
+
+   Unresolved notes are still obvious: Obsidian colours .is-unresolved
+   through the theme, so the link itself turns red without needing a
+   marker of its own. */
 .dashboard a.external-link::after {
 	content: "↗";
-	margin-left: 5px;
+	margin-left: 4px;
 	font-size: 0.8em;
 	vertical-align: 0.05em;
 	color: var(--text-faint) !important;
-	opacity: 0.7;
+	opacity: 0.75;
 	text-decoration: none;
+}
+
+/* The arrow steps up with the link it belongs to, so the row you are
+   pointing at reads as one object rather than a label with a dimmed
+   appendage. */
+.dashboard a.external-link:hover::after {
+	opacity: 1;
 }
 
 /* Themes may give external links their own background icon — it
    would duplicate the arrow */
 .dashboard a.external-link {
 	background-image: none !important;
-	padding-right: 0 !important;
-}
-
-/* Unresolved note — the marker turns red along with the link */
-.dashboard a.internal-link.is-unresolved::after {
-	color: var(--text-error) !important;
-	opacity: 0.7;
 }
 
 /* ── Narrow window: a single column ───────────────────────────
-   Two 150px columns on a phone are both cramped and fragile: a
-   section carries a negative top margin, and browsers discard
-   margins at a column break, so whichever section lands at the top
-   of the second column sits a few pixels off from the first. With
-   one column there is no break to disagree about and the sections
-   line up by construction. */
+   Two 150px columns on a phone are both cramped and fragile. With
+   one column there is no break for the sections to disagree about
+   and they line up by construction. */
 @media (max-width: 600px) {
 	.dashboard {
 		padding: 10px 14px 16px 16px !important;
@@ -414,4 +555,11 @@ Note structure:
 	) !important;
 	padding-left: max(14px, env(safe-area-inset-left, 0px)) !important;
 	padding-right: max(14px, env(safe-area-inset-right, 0px)) !important;
+}
+
+/* Touch targets need more room than a mouse pointer does. The desktop
+   rhythm is now roomy enough to serve both, so only the link rows —
+   the actual tap targets — get extra height here. */
+.is-mobile .dashboard .markdown-preview-section {
+	--dash-link-y: 6px;
 }
